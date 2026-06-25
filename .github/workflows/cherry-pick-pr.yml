@@ -1,4 +1,5 @@
 name: Cherry-Pick PR
+run-name: "Cherry-Pick ${{ inputs.pr_number != '' && format('PR #{0}', inputs.pr_number) || inputs.commit_hash }}"
 
 on:
   workflow_dispatch:
