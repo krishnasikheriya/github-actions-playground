@@ -1,0 +1,84 @@
+name: Demo Cherry-Pick PR
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit_hash:
+        description: 'The commit hash to cherry-pick'
+        required: true
+        type: string
+      pr_number:
+        description: 'The original PR number (for reference/logging)'
+        required: false
+        type: string
+      target_branch:
+        description: 'Target branch to cherry-pick onto'
+        required: true
+        type: choice
+        options:
+          - uat
+          - live
+          - custom
+      custom_target_branch:
+        description: 'Custom target branch (if target_branch is custom)'
+        required: false
+        type: string
+
+jobs:
+  cherry-pick:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          # Fetch all history for all branches and tags to ensure the commit hash and target branch are available
+          fetch-depth: 0 
+
+      - name: Set up Git Authentication & Config
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Resolve Target Branch
+        id: resolve-branch
+        run: |
+          if [ "${{ github.event.inputs.target_branch }}" == "custom" ]; then
+            if [ -z "${{ github.event.inputs.custom_target_branch }}" ]; then
+              echo "Error: target_branch is 'custom' but custom_target_branch is empty."
+              exit 1
+            fi
+            echo "BRANCH_NAME=${{ github.event.inputs.custom_target_branch }}" >> $GITHUB_ENV
+          else
+            echo "BRANCH_NAME=${{ github.event.inputs.target_branch }}" >> $GITHUB_ENV
+          fi
+
+      - name: Perform Cherry-Pick
+        run: |
+          echo "Target Branch: $BRANCH_NAME"
+          echo "Commit Hash: ${{ github.event.inputs.commit_hash }}"
+          
+          # Checkout the resolved target branch
+          git checkout $BRANCH_NAME
+          
+          # Attempt to cherry-pick. We check if it's a merge commit to apply -m 1
+          # Check if the commit has more than one parent (i.e., is a merge commit)
+          PARENTS=$(git log --pretty=%P -n 1 ${{ github.event.inputs.commit_hash }})
+          PARENT_COUNT=$(echo $PARENTS | wc -w)
+          
+          if [ $PARENT_COUNT -gt 1 ]; then
+            echo "Commit is a merge commit. Using -m 1."
+            git cherry-pick -m 1 ${{ github.event.inputs.commit_hash }} || CHERRY_PICK_FAILED=true
+          else
+            echo "Commit is a regular commit."
+            git cherry-pick ${{ github.event.inputs.commit_hash }} || CHERRY_PICK_FAILED=true
+          fi
+          
+          if [ "$CHERRY_PICK_FAILED" = "true" ]; then
+            echo "Cherry-pick resulted in conflicts or failed. Aborting."
+            git cherry-pick --abort
+            exit 1
+          fi
+
+      - name: Push to Target Branch
+        run: |
+          git push origin $BRANCH_NAME
