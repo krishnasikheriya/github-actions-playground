@@ -1,11 +1,11 @@
-name: Demo Cherry-Pick PR
+name: Cherry-Pick PR
 
 on:
   workflow_dispatch:
     inputs:
       commit_hash:
         description: 'The commit hash to cherry-pick'
-        required: true
+        required: false
         type: string
       pr_number:
         description: 'The original PR number (for reference/logging)'
