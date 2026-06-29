@@ -1,0 +1,89 @@
+name: Build Apps
+
+on:
+  workflow_dispatch:
+    inputs:
+      env:
+        description: 'Environment for static files'
+        default: 'uat'
+        type: choice
+        options:
+          - 'qa'
+          - 'uat'
+          - 'prod'
+      build-platform:
+        description: 'Build Platform'
+        default: true
+        type: boolean
+      build-matrix:
+        description: 'Build Matrix'
+        default: true
+        type: boolean
+      build-matrix-spa:
+        description: 'Build Matrix SPA'
+        default: true
+        type: boolean
+      build-uppy:
+        description: 'Build Uppy'
+        default: true
+        type: boolean
+      build-llm-tools:
+        description: 'Build LLM Tools'
+        default: true
+        type: boolean
+
+jobs:
+  build-matrix:
+    if: ${{ github.event.inputs.build-matrix == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mock Build Matrix
+        run: |
+          echo "Building Matrix for env: ${{ github.event.inputs.env }}"
+          echo "Simulating build process..."
+          sleep 5
+          echo "Build complete."
+
+  build-platform:
+    if: ${{ github.event.inputs.build-platform == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mock Build Platform
+        run: |
+          echo "Building Platform for env: ${{ github.event.inputs.env }}"
+          echo "Simulating build process..."
+          sleep 5
+          echo "Build complete."
+
+  build-matrix-spa:
+    if: ${{ github.event.inputs.build-matrix-spa == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mock Build Matrix SPA
+        run: |
+          echo "Building Matrix SPA for env: ${{ github.event.inputs.env }}"
+          echo "Simulating build process..."
+          sleep 5
+          echo "Build complete."
+
+  build-uppy:
+    if: ${{ github.event.inputs.build-uppy == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mock Build Uppy
+        run: |
+          echo "Building Uppy..."
+          echo "Simulating build process..."
+          sleep 5
+          echo "Build complete."
+
+  build-llm-tools:
+    if: ${{ github.event.inputs.build-llm-tools == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mock Build LLM Tools
+        run: |
+          echo "Building LLM Tools..."
+          echo "Simulating build process..."
+          sleep 5
+          echo "Build complete."
