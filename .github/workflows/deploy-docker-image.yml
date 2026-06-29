@@ -1,0 +1,157 @@
+name: Deploy Image to EKS Cluster
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment Environment'
+        required: true
+        type: choice
+        options:
+          - qa
+          - qa2
+          - uat
+          - uat-auto
+          - prod
+          - uat-us-east-1
+          - prod-aps1
+          - prod-uae
+          - prod-eu
+          - uat-uae
+      tier-name:
+        description: 'Tier name to deploy. Example: greif'
+        required: false
+        default: ''
+    
+      imageTag:
+        description: 'Docker Image Tag'
+        required: true
+      deploy-platform:
+        description: 'Deploy Platform'
+        default: true
+        type: boolean
+      deploy-matrix:
+        description: 'Deploy Matrix'
+        default: true
+        type: boolean
+      deploy-uppy:
+        description: 'Deploy uppy'
+        default: true
+        type: boolean
+      deploy-matrix-spa:
+        description: 'Deploy Matrix SPA'
+        default: true
+        type: boolean
+      deploy-llm-tools:
+        description: 'Deploy LLM Tools MCP'
+        default: true
+        type: boolean
+
+run-name: Deploy ${{ github.event.inputs.imageTag }} on ${{ github.event.inputs.environment }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+    steps:
+      - name: Figure Out Cluster
+        run: |
+          echo "Mocking Cluster Setup for environment: ${{ github.event.inputs.environment }}"
+          sleep 2
+
+      - name: Docker Image Tag
+        run: |
+          echo "Image Tag: ${{ github.event.inputs.imageTag }}"
+
+      - name: Deploy Platform via Helm
+        if: ${{ github.event.inputs.deploy-platform == 'true' }}
+        run: |
+          echo "Mocking Deploy Platform..."
+          sleep 2
+
+      - name: Deploy Matrix via Helm
+        if: ${{ github.event.inputs.deploy-matrix == 'true' }}
+        run: |
+          echo "Mocking Deploy Matrix..."
+          sleep 2
+
+      - name: Deploy Uppy via Helm
+        if: ${{ github.event.inputs.deploy-uppy == 'true' }}
+        run: |
+          echo "Mocking Deploy Uppy..."
+          sleep 2
+          
+      - name: Deploy Matrix SPA via Helm
+        if: ${{ github.event.inputs.deploy-matrix-spa == 'true' }}
+        run: |
+          echo "Mocking Deploy Matrix SPA..."
+          sleep 2
+          
+      - name: Deploy LLM-Tools via Helm
+        if: ${{ github.event.inputs.deploy-llm-tools == 'true' }}
+        run: |
+          echo "Mocking Deploy LLM Tools..."
+          sleep 2
+
+  check-source:
+    runs-on: ubuntu-latest
+    outputs:
+      fromUat: ${{ steps.check.outputs.fromUat }}
+    steps:
+      - id: check
+        env:
+          IMAGE_TAG: ${{ github.event.inputs.imageTag }}
+        run: |
+          if [[ "$IMAGE_TAG" =~ ^uat-[0-9]{6}-(server-)?[0-9a-f]{7,40}$ ]]; then
+            echo "Image '$IMAGE_TAG' looks like a uat-branch build"
+            echo "fromUat=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Image '$IMAGE_TAG' is NOT a uat-branch build; uat-auto cascade will be skipped"
+            echo "fromUat=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  deploy-uat-auto:
+    runs-on: ubuntu-latest
+    environment: uat-auto
+    if: ${{ github.event.inputs.environment == 'uat' && needs.check-source.outputs.fromUat == 'true' }}
+    needs:
+      - deploy
+      - check-source
+    steps:
+      - name: Figure Out Cluster
+        run: |
+          echo "Mocking Cluster Setup for uat-auto"
+          sleep 2
+
+      - name: Docker Image Tag
+        run: |
+          echo "Image Tag: ${{ github.event.inputs.imageTag }}"
+
+      - name: Deploy Platform via Helm
+        if: ${{ github.event.inputs.deploy-platform == 'true' }}
+        run: |
+          echo "Mocking Deploy Platform for uat-auto..."
+          sleep 2
+
+      - name: Deploy Matrix via Helm
+        if: ${{ github.event.inputs.deploy-matrix == 'true' }}
+        run: |
+          echo "Mocking Deploy Matrix for uat-auto..."
+          sleep 2
+
+      - name: Deploy Uppy via Helm
+        if: ${{ github.event.inputs.deploy-uppy == 'true' }}
+        run: |
+          echo "Mocking Deploy Uppy for uat-auto..."
+          sleep 2
+
+      - name: Deploy Matrix SPA via Helm
+        if: ${{ github.event.inputs.deploy-matrix-spa == 'true' }}
+        run: |
+          echo "Mocking Deploy Matrix SPA for uat-auto..."
+          sleep 2
+
+      - name: Deploy LLM-Tools via Helm
+        if: ${{ github.event.inputs.deploy-llm-tools == 'true' }}
+        run: |
+          echo "Mocking Deploy LLM Tools for uat-auto..."
+          sleep 2
