@@ -70,10 +70,10 @@ jobs:
           
           if [ $PARENT_COUNT -gt 1 ]; then
             echo "Commit is a merge commit. Using -m 1."
-            git cherry-pick -m 1 ${{ github.event.inputs.commit_hash }} || CHERRY_PICK_FAILED=true
+            git cherry-pick --empty=drop -m 1 ${{ github.event.inputs.commit_hash }} || CHERRY_PICK_FAILED=true
           else
             echo "Commit is a regular commit."
-            git cherry-pick ${{ github.event.inputs.commit_hash }} || CHERRY_PICK_FAILED=true
+            git cherry-pick --empty=drop ${{ github.event.inputs.commit_hash }} || CHERRY_PICK_FAILED=true
           fi
           
           if [ "$CHERRY_PICK_FAILED" = "true" ]; then
