@@ -1,5 +1,8 @@
 # FE Assistant: Slack Allow-List Implementation Guide
 
+# change 3
+
+
 To implement an allow-list so only authorized Frontend (FE) Developers can use the Slack bot, you need to intercept the message **before** it reaches the AI Agent node in your UnifyApps workflow.
 
 Since you are receiving the `event.user` field (which contains the Slack User ID, e.g., `U12345678`) from the Slack trigger, here are the three best ways to build this in UnifyApps, ordered from simplest to most scalable:
